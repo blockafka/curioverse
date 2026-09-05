@@ -1,0 +1,64 @@
+{
+  "id": "demo-session",
+  "seedQuestion": "为什么年轻人越来越喜欢徒步？",
+  "status": "active",
+  "round": 0,
+  "pathNodeIds": [],
+  "nodes": [
+    {
+      "id": "story-1",
+      "type": "story",
+      "title": "从周末逃离城市开始",
+      "summary": "有人把徒步当成短暂离开日常节奏的方式。",
+      "sourceRefs": [
+        {
+          "id": "demo-source-1",
+          "title": "知乎示例内容",
+          "url": "https://www.zhihu.com/",
+          "sourceType": "zhihu-story"
+        }
+      ],
+      "choices": [
+        { "id": "choice-1", "label": "继续了解这种生活方式" },
+        { "id": "choice-2", "label": "看看不同人的反对理由" }
+      ]
+    },
+    {
+      "id": "counterpoint-1",
+      "type": "counterpoint",
+      "title": "徒步不一定适合所有人",
+      "summary": "时间、体力和装备成本，都会影响真实体验。",
+      "sourceRefs": [
+        {
+          "id": "demo-source-2",
+          "title": "知乎示例讨论",
+          "url": "https://www.zhihu.com/",
+          "sourceType": "zhihu-question"
+        }
+      ],
+      "choices": [
+        { "id": "choice-3", "label": "寻找低门槛的尝试方式" },
+        { "id": "choice-4", "label": "比较不同生活选择" }
+      ]
+    },
+    {
+      "id": "application-1",
+      "type": "application",
+      "title": "先从城市周边半日路线开始",
+      "summary": "把兴趣转化成一次低成本、可验证的现实体验。",
+      "sourceRefs": [
+        {
+          "id": "demo-source-3",
+          "title": "知乎示例知识",
+          "url": "https://www.zhihu.com/",
+          "sourceType": "zhihu-knowledge"
+        }
+      ],
+      "choices": [
+        { "id": "choice-5", "label": "生成我的第一次探索计划" },
+        { "id": "choice-6", "label": "邀请朋友一起继续" }
+      ]
+    }
+  ],
+  "createdAt": "2026-09-05T00:00:00.000Z"
+}
