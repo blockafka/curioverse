@@ -85,7 +85,7 @@ Run a TypeScript or Zod validation script after dependencies are installed. Expe
 
 - [x] **Step 1: Add the responsive web entry point**
 
-Create a Vite HTML entry and a minimal React screen titled `瞬息全宇宙`; configure the Vite `/api` proxy to `http://localhost:8787`.
+Create a Vite HTML entry and a minimal React screen titled `瞬悉全宇宙`; configure the Vite `/api` proxy to `http://localhost:8787`.
 
 - [x] **Step 2: Add the typed frontend API client**
 
