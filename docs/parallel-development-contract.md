@@ -1,73 +1,105 @@
-# 瞬悉全宇宙：并行开发接口契约 V0
+# 瞬悉全宇宙：四人分工与 Mock 接口
 
-## 目标
+这份文档只解决三件事：谁写哪部分代码、这部分代码做什么、和上下游怎么对接。
 
-这份文档用于四人并行开发。前端、知乎数据、AI 探索引擎和集成层只通过下面约定的接口通信；各模块可以先使用 Mock 独立开发，最后再替换真实实现。
-
-> 官方 API mock 入口：`apps/api/src/providers/mock-zhihu-official-api.ts`；完整原始响应 fixture：`fixtures/zhihu-official-api.json`。
-
-## 模块上下游
-
-```text
-前端 Web
-  ↓ REST JSON
-API Routes
-  ↓ ExplorationOrchestrator
-探索引擎
-  ├─→ ZhihuProvider
-  └─→ AiProvider
-```
-
-- A 前端只依赖 `packages/contracts` 和 `apps/web/src/api/client.ts`。
-- B 知乎数据只负责把知乎 CLI/HTTP 返回值转换成统一的 `ContentSource`。
-- C 探索引擎只接收标准化内容，输出 `ExplorationNode`，不处理知乎原始 JSON。
-- D 集成层负责 REST 路由、Mock、分享链接、部署和联调。
-
-## 0. 接口调用方向总览
-
-这里的“给”指的是：左侧模块调用右侧模块，并把表格中的数据传过去；返回值沿相反方向返回。
-
-| 调用方 | 被调用方 | 接口 / 方法 | 调用方传入 | 被调用方返回 |
-|---|---|---|---|---|
-| A 前端 Web | D API Routes | `POST /api/v1/explorations` | 用户问题 | `ExplorationSession` |
-| A 前端 Web | D API Routes | `POST /:id/choices` | 会话 ID、节点 ID、选项 ID | 下一轮 `ExplorationSession` |
-| A 前端 Web | D API Routes | `GET /:id` | 会话 ID | 当前 `ExplorationSession` |
-| A 前端 Web | D API Routes | `POST /:id/feedback` | 会话 ID、节点 ID、反馈信号 | `{ ok: true }` |
-| D API Routes | C ExplorationOrchestrator | `create` / `choose` / `get` / `feedback` | 前端请求对应的业务参数 | 探索会话或处理结果 |
-| C ExplorationOrchestrator | B ZhihuProvider | `search` | 问题或下一轮关键词 | 标准化 `ContentSource[]` |
-| C ExplorationOrchestrator | C AiProvider | `generateNodes` | 问题、知乎内容、探索轮次、用户路径 | `ExplorationNode[]` |
-| D API Routes | A 前端 Web | HTTP 响应 | 业务处理结果或错误 | 页面展示、进度更新或错误提示 |
-
-完整链路是：
+## 一、整体调用链
 
 ```text
 A 前端
-  → D API Routes
-    → C ExplorationOrchestrator
-      → B ZhihuProvider
-      ← 标准化 ContentSource[]
-      → C AiProvider
-      ← ExplorationNode[]
-    ← ExplorationSession
-  ← HTTP JSON 响应
+  → D API 集成层
+    → C 探索引擎
+      ├─→ B 知乎数据层
+      └─→ C AI Provider
 ```
 
-B 不把知乎原始 JSON 给 A 或 C；B 只把标准化后的 `ContentSource[]` 给 C。C 不把 Prompt 或模型原始响应给 D；C 只把经过协议校验的 `ExplorationSession` / `ExplorationNode[]` 给 D。
+前端只调用 D 的 REST 接口；C 不接触知乎官方原始 JSON；B 负责把知乎数据转换成统一格式。
 
-## 1. 前端调用 API
+## 探索过程：一条内容，三个方向
 
-### 创建探索
+每一轮只搜索一条知乎内容，再由 C 负责的 AI Provider 基于这一条内容生成三张候选卡片。三张卡片是三种不同的分析方向，不是三篇新的知乎内容。
 
-**调用方向：A 前端 Web → D API Routes → C ExplorationOrchestrator。**
+```text
+用户问题
+  ↓ searchZhihu(query, 1)
+一条知乎内容（Answer 或 Article）
+  ↓ C 调用 AiProvider
+故事 / 反观点 / 现实应用（三张候选卡片）
+  ↓ 用户选择一张卡片中的一个继续方向
+nextQuery（下一轮搜索词）
+  ↓ searchZhihu(nextQuery, 1)
+下一条知乎内容
+```
 
-创建探索时，A 把用户问题给 D；D 再把问题给 C；C 会向 B 请求知乎内容，并向 `AiProvider` 请求探索节点；最后结果由 C 返回给 D，再由 D 返回给 A。
+具体例子：
+
+```text
+问题：为什么年轻人越来越喜欢徒步？
+
+知乎内容：一篇讨论徒步与情绪恢复的回答
+
+AI 生成三个方向：
+1. 故事：有人如何通过徒步摆脱焦虑
+2. 反观点：徒步并不适合所有人
+3. 现实应用：如何设计一次低门槛徒步
+
+用户选择：现实应用
+
+下一轮搜索词：徒步 新手 低门槛 路线
+```
+
+一次选择对应一次新的搜索和一次新的 AI 分析。最多进行 3 次选择；探索过故事、反观点、现实应用三类，或用户主动结束时，C 生成最终的“一问到底”路线。
+
+完成状态示例：
+
+```json
+{
+  "id": "demo-session-completed",
+  "seedQuestion": "为什么年轻人越来越喜欢徒步？",
+  "status": "completed",
+  "round": 3,
+  "pathNodeIds": ["story-1", "counterpoint-2", "application-3"],
+  "nodes": [],
+  "completion": {
+    "reason": "all-types-covered",
+    "routeTitle": "从徒步到重新认识生活",
+    "routeSummary": "一条由知乎问题延伸出的探索路线"
+  },
+  "createdAt": "2026-09-05T00:00:00.000Z"
+}
+```
+
+## 二、四个人分别负责什么
+
+### A：前端页面
+
+负责代码：
+
+```text
+apps/web/src/App.tsx
+apps/web/src/api/client.ts
+fixtures/exploration-demo.json  # 页面独立开发时使用
+```
+
+负责的事情：
+
+- 输入问题；
+- 展示故事、反观点、现实应用三类卡片；
+- 点击选项继续探索；
+- 展示探索路径，并生成分享入口；
+- 适配手机和电脑屏幕。
+
+上游和下游：
+
+```text
+用户 → A 前端 → D API Routes
+```
+
+前端请求 mock：
 
 ```http
 POST /api/v1/explorations
 Content-Type: application/json
 ```
-
-请求：
 
 ```json
 {
@@ -75,442 +107,326 @@ Content-Type: application/json
 }
 ```
 
-Mock 响应：
+前端期望收到：
 
 ```json
 {
-  "id": "mock-session-001",
+  "id": "demo-session",
   "seedQuestion": "为什么年轻人越来越喜欢徒步？",
   "status": "active",
   "round": 0,
   "pathNodeIds": [],
-  "nodes": [
-    {
-      "id": "story-1",
-      "type": "story",
-      "title": "从周末逃离城市开始",
-      "summary": "有人把徒步当成短暂离开日常节奏的方式。",
-      "sourceRefs": [
-        {
-          "id": "mock-source-1",
-          "title": "知乎示例内容",
-          "url": "https://www.zhihu.com/",
-          "sourceType": "zhihu-story"
-        }
-      ],
-      "choices": [
-        { "id": "choice-1", "label": "继续了解这种生活方式" },
-        { "id": "choice-2", "label": "看看不同人的反对理由" }
-      ]
-    },
-    {
-      "id": "counterpoint-1",
-      "type": "counterpoint",
-      "title": "徒步不一定适合所有人",
-      "summary": "时间、体力和装备成本，都会影响真实体验。",
-      "sourceRefs": [
-        {
-          "id": "mock-source-2",
-          "title": "知乎示例讨论",
-          "url": "https://www.zhihu.com/",
-          "sourceType": "zhihu-question"
-        }
-      ],
-      "choices": [
-        { "id": "choice-3", "label": "寻找低门槛的尝试方式" },
-        { "id": "choice-4", "label": "比较不同生活选择" }
-      ]
-    },
-    {
-      "id": "application-1",
-      "type": "application",
-      "title": "先从城市周边半日路线开始",
-      "summary": "把兴趣转化成一次低成本、可验证的现实体验。",
-      "sourceRefs": [
-        {
-          "id": "mock-source-3",
-          "title": "知乎示例知识",
-          "url": "https://www.zhihu.com/",
-          "sourceType": "zhihu-knowledge"
-        }
-      ],
-      "choices": [
-        { "id": "choice-5", "label": "生成我的第一次探索计划" },
-        { "id": "choice-6", "label": "邀请朋友一起继续" }
-      ]
-    }
-  ],
-  "createdAt": "2026-09-06T00:00:00.000Z"
+  "nodes": [],
+  "createdAt": "2026-09-05T00:00:00.000Z"
 }
 ```
 
-### 创建探索 Mock 字段说明
+完整页面数据见 `fixtures/exploration-demo.json`。A 可以先直接读这个 fixture 开发页面，不必等待 B、C、D 完成。
 
-| 字段 | 类型 | 含义 | 前端怎么用 |
-|---|---|---|---|
-| `id` | `string` | 一次探索会话的唯一 ID | 后续请求放在 URL 中，例如 `mock-session-001` |
-| `seedQuestion` | `string` | 用户最初输入的问题 | 展示在页面顶部，也用于生成后续内容 |
-| `status` | `"active" \| "completed"` | 探索是否结束 | `active` 显示继续探索，`completed` 显示路线结果 |
-| `round` | `number` | 当前探索轮数，从 `0` 开始 | 显示进度；初版最多 2 轮 |
-| `pathNodeIds` | `string[]` | 用户已经走过的节点 ID | 画路线、生成分享链接、恢复探索进度 |
-| `nodes` | `ExplorationNode[]` | 当前页面可以展示的探索节点 | 渲染故事、反观点、现实应用卡片 |
-| `createdAt` | ISO 时间字符串 | 会话创建时间 | 记录会话，不负责展示也可以 |
+### B：知乎数据层
 
-#### `nodes` 中每个节点的字段
+负责代码：
 
-| 字段 | 类型 | 含义 | 示例 |
-|---|---|---|---|
-| `id` | `string` | 节点唯一 ID | `story-1` |
-| `type` | `string` | 节点的内容方向 | `story` 故事、`counterpoint` 反观点、`application` 现实应用 |
-| `title` | `string` | 卡片标题 | “从周末逃离城市开始” |
-| `summary` | `string` | 卡片的简短解释 | 用于卡片正文，避免一次展示过多内容 |
-| `sourceRefs` | `SourceRef[]` | 支撑该节点的知乎来源 | 点击后打开来源链接，证明内容依据 |
-| `choices` | `ExplorationChoice[]` | 用户下一步可以选择的方向 | 渲染为按钮或卡片底部选项 |
-
-#### `sourceRefs` 中每个来源的字段
-
-| 字段 | 类型 | 含义 |
-|---|---|---|
-| `id` | `string` | 来源在本次探索中的唯一 ID |
-| `title` | `string` | 来源内容标题 |
-| `url` | `string` | 原始知乎内容链接 |
-| `sourceType` | `string` | 来源类型：`zhihu-question`、`zhihu-story`、`zhihu-search`、`zhihu-knowledge` 或 `other` |
-
-#### `choices` 中每个选项的字段
-
-| 字段 | 类型 | 含义 |
-|---|---|---|
-| `id` | `string` | 选项唯一 ID，提交选择时使用 |
-| `label` | `string` | 用户看到的选项文字 |
-
-### 提交选择
-
-**调用方向：A 前端 Web → D API Routes → C ExplorationOrchestrator。**
-
-A 把用户点击的节点和选项给 D，D 把业务参数给 C；C 根据选择向 B 请求下一轮内容，并调用 `AiProvider` 生成下一批节点；D 再把新的会话状态给 A。
-
-```http
-POST /api/v1/explorations/mock-session-001/choices
-Content-Type: application/json
+```text
+apps/api/src/providers/mock-zhihu-official-api.ts
+apps/api/src/providers/zhihu-official-types.ts
+apps/api/src/providers/zhihu-official-adapter.ts
+apps/api/src/providers/zhihu-provider.ts
+apps/api/src/providers/mock-ai-provider.ts  # C 的 AI 输出 mock
+fixtures/zhihu-official-api.json
+fixtures/exploration-demo.json             # AI 节点和页面会话 mock
 ```
 
-请求：
+负责的事情：
 
-```json
-{
-  "nodeId": "story-1",
-  "choiceId": "choice-1"
-}
+- 按知乎官方接口格式准备 mock 数据；
+- 处理 `Code / Message / Data`；
+- 处理搜索、热榜、知识库和本人数据等接口；
+- 每轮搜索返回 1 条知乎内容给 C；
+- 把官方字段转换成 C 使用的统一内容格式；
+- 官方接口报错时不能误当成“没有搜索结果”。
+
+上游和下游：
+
+```text
+C 探索引擎 → B ZhihuProvider → 知乎官方 API 或 Mock
+B ZhihuProvider → C 探索引擎
 ```
 
-字段说明：
-
-| 字段 | 类型 | 含义 |
-|---|---|---|
-| `nodeId` | `string` | 用户当前正在阅读的节点 ID |
-| `choiceId` | `string` | 用户点击的选项 ID，必须属于该节点的 `choices` |
-
-Mock 响应继续返回一个 `ExplorationSession`，其中：
-
-- `round` 增加 1；
-- `pathNodeIds` 增加当前 `nodeId`；
-- `nodes` 返回下一轮的探索节点；
-- 最多进行 2 轮，第二轮后 `status` 改为 `completed`。
-
-### 获取探索状态
-
-**调用方向：A 前端 Web → D API Routes → C ExplorationOrchestrator。**
-
-A 只提供会话 ID，D 向 C 请求会话状态，C 返回完整的 `ExplorationSession`，D 原样或按协议返回给 A。
-
-```http
-GET /api/v1/explorations/mock-session-001
-```
-
-响应：完整的 `ExplorationSession`，前端可据此恢复页面或打开分享链接。
-
-### 提交反馈
-
-**调用方向：A 前端 Web → D API Routes → C ExplorationOrchestrator。**
-
-A 把用户对节点的反馈给 D，D 再交给 C 记录；反馈不需要调用知乎接口或 AI 接口。
-
-```http
-POST /api/v1/explorations/mock-session-001/feedback
-Content-Type: application/json
-```
-
-请求：
-
-```json
-{
-  "nodeId": "story-1",
-  "signal": "useful"
-}
-```
-
-其中 `signal` 只能是 `useful`、`surprising` 或 `boring`，Mock 响应为：
-
-```json
-{
-  "ok": true
-}
-```
-
-字段说明：
-
-| 字段 | 类型 | 含义 |
-|---|---|---|
-| `ok` | `boolean` | 是否成功记录反馈；`true` 表示已记录 |
-
-反馈请求字段：
-
-| 字段 | 类型 | 含义 |
-|---|---|---|
-| `nodeId` | `string` | 用户反馈对应的节点 ID |
-| `signal` | `string` | 用户感受：`useful` 有用、`surprising` 惊讶、`boring` 无聊 |
-
-## 2. 后端 Provider 接口
-
-### 知乎数据 Provider
-
-**调用方向：C ExplorationOrchestrator → B ZhihuProvider。**
-
-C 给 B 一个问题或关键词，B 负责调用知乎 CLI/HTTP 并把结果整理后返回给 C。
-
-B 的实现可以来自 CLI 或 HTTP，但 C 不应该感知调用方式。
+C 调用 B 的接口：
 
 ```ts
-export type ContentSource = {
-  id: string
-  title: string
-  url: string
-  summary: string
-  contentType: "answer" | "article" | "story" | "question"
-  author?: string
-  voteUpCount?: number
-  commentCount?: number
-}
-
 export interface ZhihuProvider {
-  search(query: string, count?: number): Promise<ContentSource[]>
+  search(query: string, count?: number): Promise<ZhihuSource[]>;
 }
 ```
 
-`ContentSource` 字段说明：
+产品流程固定传 `count = 1`；接口仍保留 `count` 参数，是为了和官方搜索能力及测试 mock 对齐。
+官方 fixture 中保留多条 `Items` 是为了测试官方返回结构和数量参数；产品流程只取第一条。
 
-| 字段 | 类型 | 含义 | 来源映射 |
-|---|---|---|---|
-| `id` | `string` | 标准化后的内容 ID | 知乎 `ContentID` |
-| `title` | `string` | 内容标题 | 知乎 `Title` |
-| `url` | `string` | 内容原始链接 | 知乎 `Url` |
-| `summary` | `string` | 内容摘要或正文片段 | 知乎 `ContentText` |
-| `contentType` | `string` | 内容类型 | 统一为小写的 `answer`、`article`、`story` 或 `question` |
-| `author` | `string?` | 作者名称，可没有 | 知乎 `AuthorName` 或用户数据中的 `Author.Name` |
-| `voteUpCount` | `number?` | 获赞数，可没有 | 知乎 `VoteUpCount` 或 `LikeCount` |
-| `commentCount` | `number?` | 评论数，可没有 | 知乎 `CommentCount` |
+B 返回给 C 的统一数据：
 
-`ZhihuProvider.search` 参数说明：
+```ts
+{
+  id: "answer-001",
+  title: "为什么年轻人越来越喜欢徒步？ - 知乎",
+  url: "https://www.zhihu.com/question/100001/answer/200001",
+  summary: "徒步提供了短暂离开日常节奏的机会。",
+  contentType: "answer",
+  author: "作者A",
+  voteUpCount: 147,
+  commentCount: 8,
+  authorityLevel: 4,
+  rankingScore: 1.7927577,
+  comments: ["低门槛的城市周边路线更容易坚持。"]
+}
+```
 
-| 参数 | 类型 | 含义 |
-|---|---|---|
-| `query` | `string` | 用户输入的问题或下一轮探索关键词 |
-| `count` | `number?` | 希望返回的内容数量；当前 Mock 默认返回固定数据 |
-| 返回值 | `Promise<ContentSource[]>` | 标准化后的知乎内容列表，不返回原始 CLI JSON |
+B 内部调用官方 mock 的方式：
 
-B 负责：
+```ts
+const api = new MockZhihuOfficialApi();
+const raw = await api.searchZhihu("徒步", 1);
+const sources = normalizeSearchItems(assertOfficialSuccess(raw).Items);
+```
 
-- 处理 `Code` 业务错误和 CLI 退出码；
-- 统一 `ContentType` 的大小写和可选字段；
-- 把 `ContentText` / 摘要转换为 `summary`；
-- 保留原始知乎 URL、作者和互动数据；
-- 内部处理缓存、鉴权和网络错误。
+官方原始响应保持原字段大小写：
 
-### AI Provider
+```json
+{
+  "Code": 0,
+  "Message": "success",
+  "Data": {
+    "HasMore": false,
+    "SearchHashId": "mock-search-hash-zhihu-001",
+    "Items": []
+  }
+}
+```
 
-**调用方向：C ExplorationOrchestrator → C AiProvider。**
+完整官方 mock 数据见 `fixtures/zhihu-official-api.json`。
 
-探索编排器把问题和 B 返回的标准化内容给 `AiProvider`，`AiProvider` 返回节点草稿；C 再负责协议校验和会话状态更新。
+### C：探索引擎和 AI Provider
+
+负责代码：
+
+```text
+apps/api/src/domain/exploration-orchestrator.ts
+apps/api/src/providers/ai-provider.ts
+```
+
+负责的事情：
+
+- 接收用户问题；
+- 调用 B 获取知乎内容；
+- 负责 AI 分析：调用 AI Provider，基于当前 1 条知乎内容生成故事、反观点、现实应用三张候选卡片；
+- 从用户选中的卡片和继续方向确定下一轮 `nextQuery`；
+- 控制探索轮数和用户已走过的路径；
+- 集齐三类、达到 3 轮或用户主动结束时生成最终路线；
+- 输出必须符合 `packages/contracts` 中的 Schema。
+
+上游和下游：
+
+```text
+D API Routes → C ExplorationOrchestrator
+C ExplorationOrchestrator → B ZhihuProvider
+C ExplorationOrchestrator → C AiProvider
+C ExplorationOrchestrator → D API Routes
+```
+
+D 调用 C 的接口：
+
+```ts
+export interface ExplorationOrchestrator {
+  create(input: {
+    question: string;
+  }): Promise<ExplorationSession>;
+  choose(
+    sessionId: string,
+    input: { nodeId: string; choiceId: string }
+  ): Promise<ExplorationSession>;
+  get(sessionId: string): Promise<ExplorationSession>;
+  feedback(sessionId: string, input: { nodeId: string; signal: string }): Promise<void>;
+}
+```
+
+C 调用 AI Provider 的接口：
 
 ```ts
 export interface AiProvider {
   generateNodes(input: {
-    question: string
-    sources: ContentSource[]
-    round: number
-    selectedPath: string[]
-  }): Promise<ExplorationNode[]>
+    question: string;
+    source: ZhihuSource;
+    selectedPath: string[];
+    round: number;
+  }): Promise<ExplorationNode[]>;
 }
 ```
 
-`generateNodes` 参数说明：
+AI 分析由 C 负责，B 不负责理解内容，D 也不负责拼 Prompt。真实实现可以调用知乎官方 `answer` 直答接口；并行开发阶段使用 `MockAiProvider`。
 
-| 字段 | 类型 | 含义 |
-|---|---|---|
-| `question` | `string` | 用户最初的问题 |
-| `sources` | `ContentSource[]` | B 提供的标准化知乎内容 |
-| `round` | `number` | 当前是第几轮探索，用于控制内容深度 |
-| `selectedPath` | `string[]` | 用户已经选过的节点 ID，用于避免重复推荐 |
-| 返回值 | `Promise<ExplorationNode[]>` | C 生成并校验后的探索节点 |
+AI Provider 的 mock 输入：
 
-C 负责：
-
-- 从 `sources` 中生成 `story`、`counterpoint`、`application` 三类节点；
-- 每个节点至少保留一个 `sourceRefs`；
-- 输出必须通过 `ExplorationNodeSchema` 校验；
-- 生成失败时返回 Fixture 节点，不阻塞前端 Demo；
-- 控制探索轮数和节点数量，不生成无限聊天。
-
-### 探索编排器
-
-**调用方向：D API Routes → C ExplorationOrchestrator。**
-
-D 把前端请求转换成编排器方法参数，C 完成探索业务后把结果返回给 D；D 不参与节点生成。
-
-```ts
-export interface ExplorationOrchestrator {
-  create(input: CreateExplorationRequest): Promise<ExplorationSession>
-  choose(
-    sessionId: string,
-    input: ChooseExplorationRequest
-  ): Promise<ExplorationSession>
-  get(sessionId: string): Promise<ExplorationSession>
-  feedback(sessionId: string, input: ExplorationFeedback): Promise<void>
+```json
+{
+  "question": "为什么年轻人越来越喜欢徒步？",
+  "source": {
+    "id": "answer-001",
+    "title": "为什么年轻人越来越喜欢徒步？ - 知乎",
+    "summary": "徒步提供了短暂离开日常节奏的机会。",
+    "contentType": "answer"
+  },
+  "selectedPath": [],
+  "round": 0
 }
 ```
 
-`ExplorationOrchestrator` 方法说明：
+AI Provider 的 mock 输出必须是三张候选卡片，每张卡片的 `type` 分别为 `story`、`counterpoint`、`application`；`choices[].nextQuery` 是下一轮搜索词，前端只展示 `label`，不自己拼搜索词：
 
-| 方法 | 参数 | 返回值 | 作用 |
+```json
+[
+  {
+    "id": "story-1",
+    "type": "story",
+    "title": "从周末逃离城市开始",
+    "summary": "有人把徒步当成短暂离开日常节奏的方式。",
+    "sourceRefs": [
+      {
+        "id": "answer-001",
+        "title": "为什么年轻人越来越喜欢徒步？ - 知乎",
+        "url": "https://www.zhihu.com/question/100001/answer/200001",
+        "sourceType": "zhihu-search"
+      }
+    ],
+    "choices": [
+      {
+        "id": "choice-1",
+        "label": "继续了解这种生活方式",
+        "nextQuery": "徒步 生活方式 情绪恢复"
+      }
+    ]
+  },
+  {
+    "id": "counterpoint-1",
+    "type": "counterpoint",
+    "title": "徒步不一定适合所有人",
+    "summary": "时间、体力和装备成本，都会影响真实体验。",
+    "sourceRefs": [
+      {
+        "id": "answer-001",
+        "title": "为什么年轻人越来越喜欢徒步？ - 知乎",
+        "url": "https://www.zhihu.com/question/100001/answer/200001",
+        "sourceType": "zhihu-search"
+      }
+    ],
+    "choices": [
+      {
+        "id": "choice-2",
+        "label": "看看不同人的反对理由",
+        "nextQuery": "徒步 缺点 反对"
+      }
+    ]
+  },
+  {
+    "id": "application-1",
+    "type": "application",
+    "title": "先从城市周边半日路线开始",
+    "summary": "把兴趣转化成一次低成本、可验证的现实体验。",
+    "sourceRefs": [
+      {
+        "id": "answer-001",
+        "title": "为什么年轻人越来越喜欢徒步？ - 知乎",
+        "url": "https://www.zhihu.com/question/100001/answer/200001",
+        "sourceType": "zhihu-search"
+      }
+    ],
+    "choices": [
+      {
+        "id": "choice-3",
+        "label": "寻找低门槛的尝试方式",
+        "nextQuery": "徒步 新手 低门槛 路线"
+      }
+    ]
+  }
+]
+```
+
+### D：API 集成层
+
+负责代码：
+
+```text
+apps/api/src/routes/exploration.ts
+apps/api/src/index.ts
+packages/contracts/src/exploration.ts
+```
+
+负责的事情：
+
+- 接收前端请求并校验参数；
+- 调用 C 的 `ExplorationOrchestrator`；
+- 把 C 的结果返回给 A；
+- 维护统一请求/响应协议；
+- 负责最终联调、启动命令和部署。
+
+上游和下游：
+
+```text
+A 前端 → D API Routes → C ExplorationOrchestrator
+D API Routes → A 前端
+```
+
+当前骨架中的接口：
+
+| 方法 | 路径 | 请求 | 返回 |
 |---|---|---|---|
-| `create` | `question` | `ExplorationSession` | 创建新会话并生成第一批节点 |
-| `choose` | `sessionId`、`nodeId`、`choiceId` | `ExplorationSession` | 记录选择并生成下一轮节点 |
-| `get` | `sessionId` | `ExplorationSession` | 获取当前会话，用于刷新或分享链接 |
-| `feedback` | `sessionId`、`nodeId`、`signal` | `Promise<void>` | 记录用户对节点的反馈 |
+| `POST` | `/api/v1/explorations` | `{ question }` | `ExplorationSession` |
+| `GET` | `/api/v1/explorations/:id` | 会话 ID | 当前会话 |
+| `POST` | `/api/v1/explorations/:id/choices` | `{ nodeId, choiceId }` | C 读取 `nextQuery`，搜索 1 条新内容并生成下一轮会话 |
+| `POST` | `/api/v1/explorations/:id/feedback` | `{ nodeId, signal }` | `{ ok: true }` |
 
-D 的路由层只调用这个接口，不直接调用知乎或 AI Provider。
+当前这些路由还是 `501` 占位实现。D 接入 C 后，`POST /choices` 不接收前端传入的搜索词，而是由 C 从被选中的 `choice.nextQuery` 发起下一次 `searchZhihu(nextQuery, 1)`。
 
-## 3. 共享协议
+## 三、共享类型
 
-共享类型统一维护在：
+所有人都从这里引用类型，不要各自复制一份：
 
 ```text
 packages/contracts/src/exploration.ts
 ```
 
-当前已有：
-
-- `SourceRef`
-- `ExplorationChoice`
-- `ExplorationNode`
-- `ExplorationSession`
-- `CreateExplorationRequest`
-- `ChooseExplorationRequest`
-- `ExplorationFeedback`
-
-任何请求或响应字段变更，都必须先修改共享协议，再同步前后端；不要在业务代码里复制一份类型。
-
-## 4. Mock 开发规则
-
-- 前端默认使用 `fixtures/exploration-demo.json`，不等待后端完成。
-- 合法问题先返回固定 Fixture，保证页面开发和演示稳定。
-- 空问题返回 HTTP `400`。
-- 未接入真实编排时，后端探索接口返回 HTTP `501`，健康检查仍返回 `200`。
-- 真实知乎或 AI 接入失败时，回退到 Fixture，不让 Demo 白屏。
-- Mock 数据必须和 `ExplorationSessionSchema` 保持一致。
-
-## 5. 每个人的交付验收
-
-### A：前端
-
-- 可以用 Mock 完成“输入问题 → 选择节点 → 查看路线 → 复制分享链接”；
-- 390px 手机宽度和 1440px 桌面宽度下均可操作；
-- 不出现知乎 API Key 或模型密钥。
-
-### B：知乎数据
-
-- 给定一个 query 能返回标准化 `ContentSource[]`；
-- 原始 CLI/HTTP 错误不会被误判为空结果；
-- 搜索、故事、知识内容都能映射到统一来源结构。
-
-### C：AI 探索引擎
-
-- 给定标准化来源能返回合法 `ExplorationNode[]`；
-- 节点类型、选择项和来源完整；
-- 无模型或模型失败时能返回 Fixture。
-
-### D：协议与集成
-
-- REST 路由严格遵循本文档；
-- Mock、真实 Provider 和前端都能通过共享协议联调；
-- `npm run typecheck`、`npm run build` 和 `GET /health` 均通过。
-
-## 6. 接口交接清单
-
-| 交接 | 谁负责提供 | 谁负责消费 | 交付内容 |
-|---|---|---|---|
-| 前端 ↔ API | D | A | REST 路径、请求字段、响应字段、错误格式 |
-| API ↔ 探索引擎 | C | D | `ExplorationOrchestrator` 方法和返回的 `ExplorationSession` |
-| 探索引擎 ↔ 知乎数据 | B | C | `ZhihuProvider.search` 和 `ContentSource[]` |
-| 探索引擎 ↔ AI | C | C | `AiProvider.generateNodes` 和 `ExplorationNode[]` |
-| Mock ↔ 前端 | D | A | `fixtures/exploration-demo.json` 和固定会话 ID |
-
-任何人需要改接口时，先说明“调用方、被调用方、输入字段、输出字段和兼容方式”，再修改 `packages/contracts`。
-
-## 7. 知乎官方 API Mock 对照
-
-### 谁调用谁
-
-集成层 D 通过 `MockZhihuOfficialApi` 模拟调用知乎官方接口；B 的 `createMockZhihuProvider` 只调用 `searchZhihu`，并把官方原始字段转换成 C 使用的标准化 `ZhihuSource`。
+主要类型：
 
 ```text
-D / B Mock caller
-  → MockZhihuOfficialApi
-    → fixtures/zhihu-official-api.json
-      → 官方原始响应 Code / Message / Data
-        → zhihu-official-adapter.ts
-          → C 使用的 NormalizedSearchSource[]
+SourceRef
+ExplorationChoice
+ExplorationCompletion
+ExplorationNode
+ExplorationSession
+CreateExplorationRequest
+ChooseExplorationRequest
+ExplorationFeedback
 ```
 
-### 命令与 mock 数据
+## 四、并行开发规则
 
-| 官方命令 | mock 方法 | fixture key | 重要规则 |
-|---|---|---|---|
-| `quota` | `quota()` | `quota` | `Data` 是 7 项额度数组；查询本身不消耗额度 |
-| `search zhihu` | `searchZhihu(query, count)` | `searchZhihu` | `count` 按官方范围 1–10 处理；`ContentType` 为大写 `Answer` / `Article` |
-| `search global` | `searchGlobal(query, count)` | `searchGlobal` | `count` 按官方范围 1–20 处理；`ContentText` 保留 `<em>` 高亮 |
-| `hot` | `hot(limit)` | `hot` | `limit` 按官方范围 1–30 处理；`ThumbnailUrl` 和 `Summary` 即使没有内容也返回空字符串 |
-| `answer` | `answer(question, options)` | `answer` | 支持 `json`、`sse`、`text`；JSON 使用 Chat Completions 结构，不套 `Code` 外层 |
-| `me contents` | `meContents(contentType, offset)` | `meContents` | `ContentType` 是小写；返回 `Paging`，`NextOffset` 是字符串 |
-| `me followees` | `meFollowees(offset)` | `meFollowees` | `Gender` 使用 0/1/2；返回 `Paging` |
-| `me favorites lists` | `meFavoritesLists()` | `meFavoritesLists` | 无 `Paging`；收藏夹 `UrlToken` 可为数字或字符串 |
-| `me favorites recent` | `meFavoritesRecent()` | `meFavoritesRecent` | 只返回近期批次；无 `Offset`、无 `Paging` |
-| `me favorites items` | `meFavoritesItems(urlToken, offset)` | `meFavoritesItems` | `urlToken` 必填；返回收藏内容和 `Paging` |
-| `knowledge bases` | `knowledgeBases(scope)` | `knowledgeBases` | `KnowledgeBaseID` 按十进制字符串传递；不分页 |
-| `knowledge items` | `knowledgeItems(baseId, limit, cursor)` | `knowledgeItems` | `limit` 按官方范围 1–20；`NextCursor` 视为不透明值 |
-| `knowledge search` | `knowledgeSearch(input)` | `knowledgeSearch` | `baseId` 或 `scope[]` 至少提供一个；每个命中项的 `Content` 保持有序字符串数组，不拼接 |
-| `knowledge upload` | `knowledgeUpload(fileName, fileSize, baseId)` | `knowledgeUpload` | 单文件超过 100 MiB 返回参数错误；上传 mock 保留同步成功响应 |
-| `scripts/run.sh status` | `status()` | `status` | CLI 生命周期响应使用 `{ ok, ... }`，不是业务 `Code` 外层 |
-| `scripts/setup.sh` | `setup()` | `setup` | 返回安装、复用 CLI、凭证状态和 `next_action` |
-| `auth set --secret-stdin` | `authSet()` | `authSet` | 只使用脱敏掩码，不在仓库保存 Access Secret |
-| `auth status` | `authStatus(verify)` | `authStatus` | 默认本地检查，不联网、不消耗额度；`verify` 参数只保留接口语义 |
+1. A 只改 `apps/web` 和页面 fixture。
+2. B 只改知乎 Provider、官方 API fixture 和适配层。
+3. C 只改探索引擎和 AI Provider。
+4. D 只改 API Routes、入口、共享 contracts 和最终集成。
+5. 接口字段需要变化时，先通知 D 更新 `packages/contracts`，再同步其他模块。
+6. 每个人先用上游 mock 开发，最后由 D 做真实串联。
 
-### 原始字段如何给探索引擎
+## 五、各自完成标准
 
-`search zhihu` / `search global` 的官方字段在 `zhihu-official-types.ts` 中保持原样。B 的适配层只做以下明确转换：
+- A：不用后端也能完成“输入问题 → 浏览节点 → 继续探索 → 分享路线”。
+- B：每轮返回 1 条标准化 `ZhihuSource`，并正确区分成功、空结果和业务错误。
+- C：能基于 1 条来源返回 3 张不同方向的 `ExplorationNode`，并在达到结束条件时生成完成信息。
+- D：四条 REST 路由能完成参数校验、调用编排器和返回统一 JSON。
 
-| 官方字段 | 标准化字段 | 转换含义 |
-|---|---|---|
-| `ContentID` | `id` | 内容唯一标识 |
-| `Title` | `title` | 标题原文 |
-| `Url` | `url` | 原始内容链接 |
-| `ContentText` | `summary` | 内容摘要；只移除全网搜索高亮标签 `<em>` |
-| `ContentType` | `contentType` | `Answer` / `Article` 转成小写 |
-| `AuthorName` | `author` | 作者名称 |
-| `VoteUpCount` | `voteUpCount` | 获赞数 |
-| `CommentCount` | `commentCount` | 评论数 |
-| `AuthorityLevel` | `authorityLevel` | 官方字符串 `"1"`–`"4"` 转成数字 1–4 |
-| `RankingScore` | `rankingScore` | 搜索排序分 |
-| `CommentInfoList[].Content` | `comments[]` | 精选评论内容；没有时返回空数组 |
+## 六、当前实现对照
 
-`assertOfficialSuccess` 会先检查 `Code`：非零业务错误会抛出错误，绝不会把 `Code: 20001`、`30002` 等鉴权或额度错误当成空结果。可复用的业务错误样本位于 `fixtures.errors.business`，直答错误和 CLI 错误分别位于 `fixtures.errors.directAnswer`、`fixtures.errors.cli`。
+- 已符合：官方原始 mock 覆盖 18 个调用面；产品侧 `ZhihuProvider` 默认只取 1 条内容；`MockAiProvider` 返回 3 个方向，并且每个继续选项都有 `nextQuery`。
+- 已符合：C 的 AI 分析接口包含 `source`、`selectedPath` 和 `round`，可以根据当前内容和历史路径生成下一轮候选。
+- 尚未接通：`ExplorationOrchestrator` 和 4 条 REST 路由目前仍是骨架 / `501` 占位，实际的“选择 → nextQuery → 再搜 1 条 → AI 再分析”由 C、D 联调时接上。
+- 尚未接入真实 AI：`MockAiProvider` 只用于并行开发；正式实现可以在同一个 `AiProvider` 接口下调用知乎官方 `answer`，再把结果解析为三张候选卡片。

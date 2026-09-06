@@ -1,9 +1,12 @@
 import type { ExplorationNode } from "@curioverse/contracts";
+import type { ZhihuSource } from "./zhihu-provider.js";
 
 export interface AiProvider {
   generateNodes(input: {
     question: string;
-    sources: unknown[];
+    source: ZhihuSource;
+    selectedPath: string[];
+    round: number;
   }): Promise<ExplorationNode[]>;
 }
 

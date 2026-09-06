@@ -23,7 +23,7 @@ export function createMockZhihuProvider(
   api = new MockZhihuOfficialApi()
 ): ZhihuProvider {
   return {
-    async search(query, count = 10) {
+    async search(query, count = 1) {
       const response = await api.searchZhihu(query, count);
       return normalizeSearchItems(assertOfficialSuccess(response).Items);
     }

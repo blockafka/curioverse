@@ -5,6 +5,7 @@ import {
   MockZhihuOfficialApi,
   type ZhihuOfficialApi
 } from "./mock-zhihu-official-api.js";
+import { createMockZhihuProvider } from "./zhihu-provider.js";
 import {
   assertOfficialSuccess,
   normalizeSearchItems
@@ -124,4 +125,11 @@ test("official parameter errors remain business errors", async () => {
 
   const oversizedFile = await api.knowledgeUpload("too-large.md", 100 * 1024 * 1024 + 1);
   assert.equal(oversizedFile.Code, 10001);
+});
+
+test("the product-facing Zhihu provider defaults to one source per exploration step", async () => {
+  const sources = await createMockZhihuProvider().search("为什么年轻人越来越喜欢徒步？");
+
+  assert.equal(sources.length, 1);
+  assert.equal(sources[0]?.id, "answer-001");
 });

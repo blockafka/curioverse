@@ -15,7 +15,14 @@ export const SourceRefSchema = z.object({
 
 export const ExplorationChoiceSchema = z.object({
   id: z.string(),
-  label: z.string()
+  label: z.string(),
+  nextQuery: z.string().trim().min(1)
+});
+
+export const ExplorationCompletionSchema = z.object({
+  reason: z.enum(["all-types-covered", "max-rounds", "user-ended"]),
+  routeTitle: z.string(),
+  routeSummary: z.string()
 });
 
 export const ExplorationNodeSchema = z.object({
@@ -34,6 +41,7 @@ export const ExplorationSessionSchema = z.object({
   round: z.number().int().nonnegative(),
   pathNodeIds: z.array(z.string()),
   nodes: z.array(ExplorationNodeSchema),
+  completion: ExplorationCompletionSchema.optional(),
   createdAt: z.string().datetime()
 });
 
@@ -53,6 +61,7 @@ export const ExplorationFeedbackSchema = z.object({
 
 export type SourceRef = z.infer<typeof SourceRefSchema>;
 export type ExplorationChoice = z.infer<typeof ExplorationChoiceSchema>;
+export type ExplorationCompletion = z.infer<typeof ExplorationCompletionSchema>;
 export type ExplorationNode = z.infer<typeof ExplorationNodeSchema>;
 export type ExplorationSession = z.infer<typeof ExplorationSessionSchema>;
 export type CreateExplorationRequest = z.infer<
