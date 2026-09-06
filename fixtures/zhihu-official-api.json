@@ -1,0 +1,580 @@
+{
+  "quota": {
+    "Code": 0,
+    "Message": "success",
+    "Data": [
+      { "APIID": "global_search", "APIName": "全网搜索", "TotalQuota": 10, "TotalUsed": 2, "RemainingQuota": 8 },
+      { "APIID": "zhihu_search", "APIName": "知乎搜索", "TotalQuota": 10, "TotalUsed": 1, "RemainingQuota": 9 },
+      { "APIID": "hot_list", "APIName": "知乎热榜", "TotalQuota": 2, "TotalUsed": 0, "RemainingQuota": 2 },
+      { "APIID": "user_data", "APIName": "知乎用户数据", "TotalQuota": 1000, "TotalUsed": 5, "RemainingQuota": 995 },
+      { "APIID": "zhida_openai", "APIName": "知乎直答", "TotalQuota": 2, "TotalUsed": 0, "RemainingQuota": 2 },
+      { "APIID": "knowledge", "APIName": "知乎知识库", "TotalQuota": 500, "TotalUsed": 3, "RemainingQuota": 497 },
+      { "APIID": "tools", "APIName": "工具调用", "TotalQuota": 100, "TotalUsed": 4, "RemainingQuota": 96 }
+    ]
+  },
+  "searchZhihu": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "HasMore": false,
+      "SearchHashId": "mock-search-hash-zhihu-001",
+      "Items": [
+        {
+          "Title": "为什么年轻人越来越喜欢徒步？ - 知乎",
+          "ContentType": "Answer",
+          "ContentID": "answer-001",
+          "ContentText": "徒步提供了短暂离开日常节奏的机会，也让人重新感受到身体和环境。",
+          "Url": "https://www.zhihu.com/question/100001/answer/200001",
+          "CommentCount": 8,
+          "VoteUpCount": 147,
+          "AuthorName": "作者A",
+          "AuthorAvatar": "https://pic1.zhimg.com/50/mock-avatar-a_l.jpg",
+          "AuthorBadge": "https://picx.zhimg.com/mock-badge-a.png",
+          "AuthorBadgeText": "户外领域答主",
+          "EditTime": 1779360981,
+          "CommentInfoList": [{ "Content": "低门槛的城市周边路线更容易坚持。" }],
+          "AuthorityLevel": "4",
+          "RankingScore": 1.7927577
+        },
+        {
+          "Title": "一个人徒步是什么体验？ - 知乎",
+          "ContentType": "Answer",
+          "ContentID": "answer-002",
+          "ContentText": "独处让人把注意力从即时消息拉回脚下的路，也带来重新整理思绪的时间。",
+          "Url": "https://www.zhihu.com/question/100002/answer/200002",
+          "CommentCount": 21,
+          "VoteUpCount": 96,
+          "AuthorName": "作者B",
+          "AuthorAvatar": "https://pic1.zhimg.com/50/mock-avatar-b_l.jpg",
+          "AuthorBadge": "",
+          "AuthorBadgeText": "",
+          "EditTime": 1779360881,
+          "AuthorityLevel": "3",
+          "RankingScore": 1.4312
+        },
+        {
+          "Title": "城市徒步如何成为新的社交方式？ - 知乎",
+          "ContentType": "Article",
+          "ContentID": "article-001",
+          "ContentText": "路线、打卡与共同完成一段路，让陌生人拥有了一个自然的交流入口。",
+          "Url": "https://zhuanlan.zhihu.com/p/300001",
+          "CommentCount": 13,
+          "VoteUpCount": 82,
+          "AuthorName": "作者C",
+          "AuthorAvatar": "https://pic1.zhimg.com/50/mock-avatar-c_l.jpg",
+          "AuthorBadge": "https://picx.zhimg.com/mock-badge-c.png",
+          "AuthorBadgeText": "城市观察者",
+          "EditTime": 1779360781,
+          "CommentInfoList": [{ "Content": "一条好路线本身就是很好的社交媒介。" }],
+          "AuthorityLevel": "2",
+          "RankingScore": 1.2088
+        },
+        {
+          "Title": "徒步装备应该怎么选？ - 知乎",
+          "ContentType": "Article",
+          "ContentID": "article-002",
+          "ContentText": "第一次尝试不必从昂贵装备开始，舒适的鞋和可验证的小路线就足够。",
+          "Url": "https://zhuanlan.zhihu.com/p/300002",
+          "CommentCount": 5,
+          "VoteUpCount": 51,
+          "AuthorName": "作者D",
+          "AuthorAvatar": "https://pic1.zhimg.com/50/mock-avatar-d_l.jpg",
+          "AuthorBadge": "",
+          "AuthorBadgeText": "",
+          "EditTime": 1779360681,
+          "AuthorityLevel": "1",
+          "RankingScore": 0.9931
+        }
+      ]
+    }
+  },
+  "searchGlobal": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "HasMore": false,
+      "SearchHashId": "mock-search-hash-global-001",
+      "Items": [
+        {
+          "Title": "城市徒步：年轻人的周末新仪式",
+          "ContentType": "Article",
+          "ContentID": "global-article-001",
+          "ContentText": "<em>徒步</em>正在成为一种轻量、可分享的城市探索方式。",
+          "Url": "https://example.com/articles/walking-ritual",
+          "CommentCount": 34,
+          "VoteUpCount": 218,
+          "AuthorName": "作者E",
+          "AuthorAvatar": "https://pic1.zhimg.com/50/mock-avatar-e_l.jpg",
+          "AuthorBadge": "",
+          "AuthorBadgeText": "",
+          "EditTime": 1779360581,
+          "AuthorityLevel": "3",
+          "RankingScore": 2.091
+        },
+        {
+          "Title": "为什么人需要定期离开熟悉的地方？",
+          "ContentType": "Answer",
+          "ContentID": "global-answer-001",
+          "ContentText": "短暂改变环境，可以帮助人重新观察自己的生活选择。",
+          "Url": "https://www.zhihu.com/question/100003/answer/200003",
+          "CommentCount": 10,
+          "VoteUpCount": 73,
+          "AuthorName": "作者F",
+          "AuthorAvatar": "https://pic1.zhimg.com/50/mock-avatar-f_l.jpg",
+          "AuthorBadge": "",
+          "AuthorBadgeText": "",
+          "EditTime": 1779360481,
+          "AuthorityLevel": "2",
+          "RankingScore": 1.366
+        },
+        {
+          "Title": "从一条路线认识一座城市",
+          "ContentType": "Article",
+          "ContentID": "global-article-002",
+          "ContentText": "把目的地换成问题，城市会从地图变成一组可以继续追问的故事。",
+          "Url": "https://example.com/articles/city-as-question",
+          "CommentCount": 7,
+          "VoteUpCount": 49,
+          "AuthorName": "作者G",
+          "AuthorAvatar": "https://pic1.zhimg.com/50/mock-avatar-g_l.jpg",
+          "AuthorBadge": "",
+          "AuthorBadgeText": "",
+          "EditTime": 1779360381,
+          "AuthorityLevel": "2",
+          "RankingScore": 1.104
+        }
+      ]
+    }
+  },
+  "hot": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Total": 20,
+      "Items": [
+        {
+          "Title": "为什么年轻人越来越喜欢徒步？",
+          "Url": "https://www.zhihu.com/question/100001",
+          "ThumbnailUrl": "https://pic4.zhimg.com/v2-mock-thumb-001.png",
+          "Summary": "从运动、社交和情绪恢复三个角度讨论徒步热。"
+        },
+        {
+          "Title": "你最近一次因为好奇心出发是什么时候？",
+          "Url": "https://www.zhihu.com/question/100004",
+          "ThumbnailUrl": "",
+          "Summary": ""
+        },
+        {
+          "Title": "城市周边有哪些适合新手的半日路线？",
+          "Url": "https://www.zhihu.com/question/100005",
+          "ThumbnailUrl": "https://pic4.zhimg.com/v2-mock-thumb-005.png",
+          "Summary": "低成本、短距离的路线更容易让第一次尝试发生。"
+        },
+        {
+          "Title": "如何把碎片时间用来学习？",
+          "Url": "https://zhuanlan.zhihu.com/p/300005",
+          "ThumbnailUrl": "https://pic4.zhimg.com/v2-mock-thumb-006.png",
+          "Summary": ""
+        }
+      ]
+    }
+  },
+  "answer": {
+    "json": {
+      "id": "chatcmpl-mock-001",
+      "object": "chat.completion",
+      "created": 1788598422,
+      "model": "zhida-fast-1p5",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "年轻人喜欢徒步，往往不是只为了运动，而是想在十分钟到半天的可控时间里，暂时离开信息流，重新获得身体感、环境感和与他人相遇的机会。"
+          },
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    "thinkingJson": {
+      "id": "chatcmpl-mock-thinking-001",
+      "object": "chat.completion",
+      "created": 1788598422,
+      "model": "zhida-thinking-1p5",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "先区分运动收益、情绪恢复和社交动机，再用知乎内容进行交叉验证。",
+            "content": "徒步同时满足了身体活动、低门槛探索和弱连接社交，因此成为碎片化生活中的一种可执行选择。"
+          },
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    "text": "年轻人喜欢徒步，往往不是只为了运动，而是想在可控时间里暂时离开信息流，重新获得身体感、环境感和与他人相遇的机会。",
+    "sse": "data: {\"id\":\"chatcmpl-mock-001\",\"object\":\"chat.completion.chunk\",\"created\":1788598422,\"model\":\"zhida-fast-1p5\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"年轻人喜欢徒步\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-mock-001\",\"object\":\"chat.completion.chunk\",\"created\":1788598422,\"model\":\"zhida-fast-1p5\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"，也因为它能让人暂时离开信息流。\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-mock-001\",\"object\":\"chat.completion.chunk\",\"created\":1788598422,\"model\":\"zhida-fast-1p5\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n"
+  },
+  "meContents": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Items": [
+        {
+          "ContentType": "answer",
+          "Url": "https://www.zhihu.com/answer/200001",
+          "CreatedAt": 1788142312,
+          "LikeCount": 69,
+          "CommentCount": 12,
+          "FavoriteCount": 5,
+          "Title": "我的徒步入门经验",
+          "Summary": "从第一条城市路线开始，记录如何降低开始行动的门槛。"
+        },
+        {
+          "ContentType": "article",
+          "Url": "https://zhuanlan.zhihu.com/p/300010",
+          "CreatedAt": 1788142412,
+          "LikeCount": 41,
+          "CommentCount": 6,
+          "FavoriteCount": 3,
+          "Title": "把好奇心变成一条路线",
+          "Summary": "关于如何把一个问题继续追问下去的短文。"
+        }
+      ],
+      "Paging": { "IsEnd": true, "Totals": 2 }
+    }
+  },
+  "meFollowees": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Items": [
+        {
+          "Fullname": "用户A",
+          "UrlToken": "user-a",
+          "Url": "https://www.zhihu.com/people/user-a",
+          "AvatarUrl": "https://pic2.zhimg.com/50/mock-followee-a_l.jpg",
+          "Headline": "关注城市、科技与人的故事",
+          "Gender": 2,
+          "FollowerCount": 391593
+        },
+        {
+          "Fullname": "用户B",
+          "UrlToken": "user-b",
+          "Url": "https://www.zhihu.com/people/user-b",
+          "AvatarUrl": "https://pic2.zhimg.com/50/mock-followee-b_l.jpg",
+          "Headline": "记录每一个值得继续的问题",
+          "Gender": 1,
+          "FollowerCount": 8241
+        }
+      ],
+      "Paging": { "IsEnd": false, "NextOffset": "20", "Totals": 34 }
+    }
+  },
+  "meFavoritesLists": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Items": [
+        {
+          "UrlToken": 790977950,
+          "Url": "https://www.zhihu.com/collection/790977950",
+          "Title": "值得继续追问",
+          "Description": "收藏那些能通向另一个领域的回答",
+          "IsPublic": false
+        },
+        {
+          "UrlToken": 790977951,
+          "Url": "https://www.zhihu.com/collection/790977951",
+          "Title": "周末出发",
+          "Description": "城市周边路线与轻量行动灵感",
+          "IsPublic": true
+        }
+      ]
+    }
+  },
+  "meFavoritesRecent": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Items": [
+        {
+          "ContentType": "answer",
+          "Url": "https://www.zhihu.com/answer/200010",
+          "CreatedAt": 1788142512,
+          "FavTime": 1788578269,
+          "LikeCount": 69,
+          "CommentCount": 12,
+          "FavoriteCount": 5,
+          "Title": "如何开始一次不做攻略的旅行？",
+          "Summary": "先带着一个问题出发，允许途中出现新的问题。",
+          "Favlists": [
+            { "UrlToken": 790977950, "Title": "值得继续追问", "Url": "https://www.zhihu.com/collection/790977950" }
+          ],
+          "Author": {
+            "Name": "作者H",
+            "UrlToken": "author-h",
+            "Url": "https://www.zhihu.com/people/author-h",
+            "Gender": 2,
+            "Headline": "旅行与城市观察"
+          }
+        },
+        {
+          "ContentType": "article",
+          "Url": "https://zhuanlan.zhihu.com/p/300011",
+          "CreatedAt": 1788142612,
+          "FavTime": 1788578169,
+          "LikeCount": 32,
+          "CommentCount": 4,
+          "FavoriteCount": 2,
+          "Title": "一座城市的隐藏入口",
+          "Summary": "从街区、声音和人的关系里重新认识熟悉的地方。",
+          "Favlists": [
+            { "UrlToken": 790977951, "Title": "周末出发", "Url": "https://www.zhihu.com/collection/790977951" }
+          ]
+        }
+      ]
+    }
+  },
+  "meFavoritesItems": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Items": [
+        {
+          "ContentType": "answer",
+          "Url": "https://www.zhihu.com/answer/200010",
+          "CreatedAt": 1788142512,
+          "FavTime": 1788578269,
+          "LikeCount": 69,
+          "CommentCount": 12,
+          "FavoriteCount": 5,
+          "Title": "如何开始一次不做攻略的旅行？",
+          "Summary": "先带着一个问题出发，允许途中出现新的问题。",
+          "Favlists": [
+            { "UrlToken": 790977950, "Title": "值得继续追问", "Url": "https://www.zhihu.com/collection/790977950" }
+          ],
+          "Author": {
+            "Name": "作者H",
+            "UrlToken": "author-h",
+            "Url": "https://www.zhihu.com/people/author-h",
+            "Gender": 2,
+            "Headline": "旅行与城市观察"
+          }
+        },
+        {
+          "ContentType": "question",
+          "Url": "https://www.zhihu.com/question/100006",
+          "CreatedAt": 1788142712,
+          "FavTime": 1788578069,
+          "LikeCount": 18,
+          "CommentCount": 3,
+          "FavoriteCount": 1,
+          "Title": "你会如何安排十分钟的空闲时间？",
+          "Summary": "一个关于碎片时间与注意力选择的问题。",
+          "Favlists": [
+            { "UrlToken": 790977950, "Title": "值得继续追问", "Url": "https://www.zhihu.com/collection/790977950" }
+          ]
+        }
+      ],
+      "Paging": { "IsEnd": false, "NextOffset": "20", "Totals": 123 }
+    }
+  },
+  "knowledgeBases": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Items": [
+        {
+          "KnowledgeBaseID": "10001",
+          "Name": "瞬息全宇宙 Demo 知识库",
+          "Description": "用于演示跨领域探索的数据样本",
+          "Relation": "created",
+          "IsDefault": true,
+          "Visibility": "private",
+          "ContentCount": 2,
+          "UpdatedAt": 1755407318
+        },
+        {
+          "KnowledgeBaseID": "10002",
+          "Name": "城市与好奇心公开库",
+          "Description": "关于城市、学习与生活方式的公共资料",
+          "Relation": "subscribed",
+          "IsDefault": false,
+          "Visibility": "public",
+          "ContentCount": 12,
+          "UpdatedAt": 1755407218
+        }
+      ]
+    }
+  },
+  "knowledgeItems": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Items": [
+        {
+          "RecallContentID": "recall-001",
+          "ContentType": "file",
+          "Title": "十分钟探索设计原则",
+          "Summary": "从一个问题进入，通过故事、反观点和行动建议形成可继续路线。",
+          "CreatedAt": 1755407000,
+          "UpdatedAt": 1755407318,
+          "OriginUrl": "https://example.com/curioverse/design-principles"
+        },
+        {
+          "RecallContentID": "recall-002",
+          "ContentType": "file",
+          "Title": "城市徒步访谈摘录",
+          "Summary": "低门槛的半日路线让第一次行动更容易发生。",
+          "CreatedAt": 1755407100,
+          "UpdatedAt": 1755407218,
+          "OriginUrl": "https://example.com/curioverse/walking-interviews"
+        }
+      ],
+      "Total": 2,
+      "HasMore": false
+    }
+  },
+  "knowledgeSearch": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "Items": [
+        {
+          "RecallContentID": "recall-001",
+          "ContentType": "file",
+          "Title": "十分钟探索设计原则",
+          "Content": [
+            "从一个知乎问题开始，而不是从一个空白主题开始。",
+            "每一轮至少连接故事、反观点与现实应用中的一个方向。"
+          ],
+          "OriginUrl": "https://example.com/curioverse/design-principles"
+        },
+        {
+          "RecallContentID": "recall-002",
+          "ContentType": "file",
+          "Title": "城市徒步访谈摘录",
+          "Content": [
+            "第一次行动应该足够轻，最好在半天内可以完成。"
+          ],
+          "OriginUrl": "https://example.com/curioverse/walking-interviews"
+        }
+      ]
+    }
+  },
+  "knowledgeUpload": {
+    "Code": 0,
+    "Message": "success",
+    "Data": {
+      "KnowledgeBaseID": "10001",
+      "RecallContentID": "recall-upload-001",
+      "FileName": "curioverse-brief.md",
+      "FileSize": 2048,
+      "Title": "瞬息全宇宙项目说明",
+      "Abstract": "项目目标、数据来源和探索路线说明。",
+      "OriginUrl": "https://example.com/curioverse/brief"
+    }
+  },
+  "status": {
+    "ok": true,
+    "installed": true,
+    "next_action": "ready",
+    "auth": { "configured": true },
+    "cli": {
+      "binary_path": "/mock/bin/zhihu-openapi",
+      "compatible": true,
+      "current_version": "0.3.0",
+      "latest_version": "0.3.0",
+      "min_required_version": "0.3.0",
+      "update_available": false
+    },
+    "skill": {
+      "current_version": "0.1.0",
+      "latest_version": "0.1.0",
+      "min_cli_version": "0.3.0",
+      "sha256": "mock-skill-sha256",
+      "size": 55077,
+      "update_available": false,
+      "url": "https://developer.zhihu.com/skills/zhihu-openapi.zip"
+    },
+    "update_check": { "http_status": 200, "status": "verified" }
+  },
+  "setup": {
+    "ok": true,
+    "installed": false,
+    "reused_cli": true,
+    "installed_cli_version": "0.3.0",
+    "binary_path": "/mock/bin/zhihu-openapi",
+    "auth_configured": true,
+    "next_action": "ready"
+  },
+  "authSet": {
+    "ok": true,
+    "status": "READY",
+    "credential": {
+      "source": "keychain",
+      "masked": "mock...cret",
+      "verification": "valid"
+    }
+  },
+  "authStatus": {
+    "ok": true,
+    "environment_set": false,
+    "keychain": "available",
+    "source": "keychain",
+    "masked": "mock...cret",
+    "verification": "not_performed",
+    "environment_shadows_keychain": false,
+    "last_verified_at": "2026-09-05T08:48:23Z"
+  },
+  "errors": {
+    "business": {
+      "invalidParams": { "Code": 10001, "Message": "参数错误" },
+      "authFailed": { "Code": 20001, "Message": "鉴权失败" },
+      "rateLimited": { "Code": 30001, "Message": "请求频率受限" },
+      "quotaExceeded": { "Code": 30002, "Message": "额度已用尽" },
+      "internal": { "Code": 90001, "Message": "服务内部错误" },
+      "knowledgeBaseNotFound": { "Code": 40004, "Message": "知识库不存在" },
+      "knowledgeFileProcessing": { "Code": 40005, "Message": "文件仍在处理中" },
+      "knowledgeParseFailed": { "Code": 40006, "Message": "文件解析失败" },
+      "knowledgeRetrievalFailed": { "Code": 50002, "Message": "知识库检索失败" }
+    },
+    "directAnswer": {
+      "error": {
+        "message": "模型不存在",
+        "type": "invalid_request_error",
+        "param": "model",
+        "code": "model_not_found"
+      }
+    },
+    "cli": {
+      "authRequired": {
+        "ok": false,
+        "error": {
+          "source": "cli",
+          "code": "AUTH_REQUIRED",
+          "message": "请登录知乎数据开放平台并申请新 Access Secret",
+          "action_url": "https://developer.zhihu.com/profile"
+        }
+      },
+      "authInvalid": {
+        "ok": false,
+        "error": { "source": "cli", "code": "AUTH_INVALID", "message": "Access Secret 无效" }
+      },
+      "network": {
+        "ok": false,
+        "error": { "source": "cli", "code": "NETWORK_ERROR", "message": "网络请求失败" }
+      },
+      "timeout": {
+        "ok": false,
+        "error": { "source": "cli", "code": "TIMEOUT", "message": "请求超时" }
+      },
+      "upstream": {
+        "ok": false,
+        "error": { "source": "cli", "code": "UPSTREAM_ERROR", "message": "上游服务错误" }
+      }
+    }
+  }
+}
