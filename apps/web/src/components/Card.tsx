@@ -38,6 +38,7 @@ interface CardProps {
   onFavorite?: (id: string) => void;
   className?: string;
   style?: CSSProperties;
+  rotate?: number;
 }
 
 export function Card({
@@ -50,6 +51,7 @@ export function Card({
   onFavorite,
   className,
   style,
+  rotate = 0,
 }: CardProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -293,11 +295,11 @@ export function Card({
   const cardTransform =
     `translate(${totalX.toFixed(2)}px, ${totalY.toFixed(2)}px) ` +
     `perspective(800px) rotateX(${tilt.rx.toFixed(2)}deg) rotateY(${tilt.ry.toFixed(2)}deg) ` +
+    `rotate(${rotate.toFixed(2)}deg) ` +
     `scale(${tilt.scale.toFixed(3)})`;
 
   const shadowTransform =
-    `translate(${(totalX * 0.3).toFixed(2)}px, ${(totalY * 0.3 + 18).toFixed(2)}px) ` +
-    `scale(0.92)`;
+    `translate(${(totalX * 0.3 + 6).toFixed(2)}px, ${(totalY * 0.3 + 6).toFixed(2)}px)`;
 
   /* ---------- styles ---------- */
   const wrapperStyle: CSSProperties = {
@@ -312,11 +314,9 @@ export function Card({
     position: "absolute",
     inset: 0,
     borderRadius: "16px",
-    background:
-      "radial-gradient(ellipse at center, rgba(0,0,0,0.24) 0%, rgba(0,0,0,0) 70%)",
+    background: "#000",
     transform: shadowTransform,
-    transition: "transform 0.15s ease-out, opacity 0.3s ease",
-    opacity: isHovered || isDragging ? 1 : 0.55,
+    transition: "transform 0.15s ease-out",
     zIndex: 0,
     pointerEvents: "none",
   };
@@ -327,19 +327,15 @@ export function Card({
     width: "100%",
     aspectRatio: "2 / 3",
     background: "#ffffff",
+    border: "3px solid #000",
     borderRadius: "16px",
+    boxSizing: "border-box",
     padding: "20px",
     display: "flex",
     flexDirection: "column",
     gap: "8px",
-    boxShadow:
-      isHovered || isDragging
-        ? "0 28px 56px rgba(0,0,0,0.14)"
-        : "0 4px 14px rgba(0,0,0,0.06)",
     transform: cardTransform,
-    transition: isDragging
-      ? "none"
-      : "transform 0.15s ease-out, box-shadow 0.3s ease",
+    transition: isDragging ? "none" : "transform 0.15s ease-out",
     cursor: isDragging ? "grabbing" : "grab",
     overflow: "hidden",
     userSelect: "none",
@@ -351,23 +347,23 @@ export function Card({
   const titleStyle: CSSProperties = {
     margin: 0,
     fontSize: "1.25rem",
-    fontWeight: 700,
-    color: "#111827",
+    fontWeight: 900,
+    color: "#000",
     lineHeight: 1.3,
   };
 
   const subtitleStyle: CSSProperties = {
     margin: 0,
     fontSize: "0.85rem",
-    fontWeight: 500,
-    color: "#6b7280",
+    fontWeight: 700,
+    color: "#000",
     lineHeight: 1.4,
   };
 
   const contentStyle: CSSProperties = {
     flex: 1,
     overflow: "auto",
-    color: "#374151",
+    color: "#000",
     fontSize: "0.85rem",
     lineHeight: 1.5,
   };

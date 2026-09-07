@@ -9,6 +9,30 @@ interface CardData {
   content: React.ReactNode;
 }
 
+/* ---------- 粗野主义配色与物理参数 ---------- */
+const INK = "#000000";
+const CREAM = "#FFFDF5";
+const BLUE = "#0084FF";
+
+const FONT =
+  "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+const BLACK_BORDER = "3px solid #000";
+const HARD_SHADOW_SM = "3px 3px 0 0 #000";
+const HARD_SHADOW = "5px 5px 0 0 #000";
+const HARD_SHADOW_LG = "7px 7px 0 0 #000";
+
+/* 卡片内图片：block + border-box，避免 inline 基线空隙与黑边框撑出滚动条 */
+const CARD_IMG_STYLE: CSSProperties = {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  borderRadius: "12px",
+  border: BLACK_BORDER,
+  boxSizing: "border-box",
+  display: "block",
+};
+
 const MOCK_TITLES = [
   ["瞬悉全宇宙", "长得帅"],
   ["为什么年轻人喜欢徒步？", "Angfel Cijd"],
@@ -24,9 +48,9 @@ const MOCK_TITLES = [
 const MOCK_CONTENTS = [
   "探索故事、观点与现实应用。每张卡牌都是一扇通往未知世界的门，等待你去揭开它的秘密。",
   "通过精心的像素艺术设计，传统卡牌游戏焕发出全新的生命力。每一个像素都承载着创作者的心血与灵感。",
-  <img key="galaxy" src="https://picsum.photos/seed/galaxy/400/600" alt="星际" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }} />,
+  <img key="galaxy" draggable={false} src="https://picsum.photos/seed/galaxy/400/600" alt="星际" style={CARD_IMG_STYLE} />,
   "在这张卡牌背后，隐藏着古老而强大的力量。只有真正理解卡牌语言的人，才能唤醒沉睡的能量。",
-  <img key="ocean" src="https://picsum.photos/seed/ocean/400/600" alt="深海" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }} />,
+  <img key="ocean" draggable={false} src="https://picsum.photos/seed/ocean/400/600" alt="深海" style={CARD_IMG_STYLE} />,
   "元素卡牌是游戏中最具爆发力的存在。当巫师举起法杖，整个战场都将被烈焰吞噬。",
   "风行者从不留下足迹，他们像一阵微风掠过战场，只留下敌人困惑的眼神。",
   "时间的河流不会为任何人停留，但时间旅者可以在关键时刻短暂地触摸过去与未来。",
@@ -39,25 +63,40 @@ let nextId = 100;
 const pageStyle: CSSProperties = {
   minHeight: "100vh",
   padding: "48px 24px",
-  background: "linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%)",
-  color: "#111827",
-  fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+  background: CREAM,
+  backgroundImage: "radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)",
+  backgroundSize: "22px 22px",
+  color: INK,
+  fontFamily: FONT,
   position: "relative",
   overflow: "hidden",
 };
 
 const headingStyle: CSSProperties = {
   textAlign: "center",
-  fontSize: "2rem",
-  fontWeight: 700,
-  marginBottom: "8px",
-  color: "#0f172a",
+  margin: "0 0 16px",
+};
+
+const titleBadgeStyle: CSSProperties = {
+  display: "inline-block",
+  fontSize: "2.25rem",
+  fontWeight: 900,
+  color: "#ffffff",
+  background: BLUE,
+  border: BLACK_BORDER,
+  borderRadius: "14px",
+  padding: "4px 18px",
+  boxShadow: HARD_SHADOW_LG,
+  letterSpacing: "-0.02em",
+  textTransform: "lowercase",
+  transform: "rotate(-1deg)",
 };
 
 const subStyle: CSSProperties = {
   textAlign: "center",
   fontSize: "1rem",
-  color: "#64748b",
+  fontWeight: 700,
+  color: INK,
   marginBottom: "48px",
 };
 
@@ -90,27 +129,29 @@ const zoneStyle = (side: "left" | "right"): CSSProperties => ({
   pointerEvents: "none",
   userSelect: "none",
   background:
-    side === "left"
-      ? "linear-gradient(180deg, rgba(59,130,246,0.16) 0%, rgba(59,130,246,0.06) 100%)"
-      : "linear-gradient(180deg, rgba(239,68,68,0.16) 0%, rgba(239,68,68,0.06) 100%)",
-  backdropFilter: "blur(2px)",
-  borderRight: side === "left" ? "1px solid rgba(59,130,246,0.3)" : undefined,
-  borderLeft: side === "right" ? "1px solid rgba(239,68,68,0.3)" : undefined,
+    side === "left" ? "rgba(0,132,255,0.16)" : "rgba(255,107,107,0.16)",
+  borderRight: side === "left" ? BLACK_BORDER : undefined,
+  borderLeft: side === "right" ? BLACK_BORDER : undefined,
 });
 
 const zoneIconStyle: CSSProperties = {
   fontSize: "2.5rem",
-  opacity: 0.45,
-  marginBottom: "8px",
+  marginBottom: "10px",
+  filter: "drop-shadow(2px 2px 0 #000)",
 };
 
 const zoneLabelStyle: CSSProperties = {
-  fontSize: "0.75rem",
-  fontWeight: 600,
+  fontSize: "0.8rem",
+  fontWeight: 900,
   textTransform: "uppercase" as const,
-  letterSpacing: "1.5px",
-  opacity: 0.5,
+  letterSpacing: "2px",
+  color: INK,
   writingMode: "vertical-rl" as const,
+  background: "#fff",
+  padding: "10px 5px",
+  border: BLACK_BORDER,
+  borderRadius: "10px",
+  boxShadow: HARD_SHADOW_SM,
 };
 
 const debugBarStyle: CSSProperties = {
@@ -122,34 +163,35 @@ const debugBarStyle: CSSProperties = {
   gap: "12px",
   alignItems: "center",
   zIndex: 50,
-  background: "rgba(255,255,255,0.9)",
+  background: "#fff",
+  border: BLACK_BORDER,
   borderRadius: "9999px",
   padding: "8px 18px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-  backdropFilter: "blur(8px)",
+  boxShadow: HARD_SHADOW,
 };
 
 const debugBtnStyle: CSSProperties = {
-  border: "none",
-  background: "#0f172a",
-  color: "#fff",
+  border: BLACK_BORDER,
+  background: BLUE,
+  color: "#ffffff",
   padding: "6px 14px",
   borderRadius: "9999px",
   fontSize: "0.8rem",
-  fontWeight: 600,
+  fontWeight: 800,
   cursor: "pointer",
-  fontFamily: "inherit",
+  fontFamily: FONT,
+  boxShadow: HARD_SHADOW_SM,
 };
 
 const debugTextStyle: CSSProperties = {
   fontSize: "0.8rem",
-  color: "#64748b",
-  fontWeight: 500,
+  color: INK,
+  fontWeight: 700,
 };
 
 const favListStyle: CSSProperties = {
   position: "fixed",
-  bottom: "72px",
+  bottom: "76px",
   left: "50%",
   transform: "translateX(-50%)",
   display: "flex",
@@ -158,15 +200,31 @@ const favListStyle: CSSProperties = {
 };
 
 const favBadgeStyle: CSSProperties = {
-  background: "#fef3c7",
-  color: "#92400e",
+  background: "#fff",
+  color: INK,
   fontSize: "0.7rem",
-  fontWeight: 600,
+  fontWeight: 700,
   padding: "3px 10px",
   borderRadius: "9999px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+  border: BLACK_BORDER,
+  boxShadow: HARD_SHADOW_SM,
   whiteSpace: "nowrap" as const,
 };
+
+/* 贴纸按压效果：hover 时向阴影方向位移并收回阴影 */
+const brutalCSS = `
+.brutal-btn {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.brutal-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 #000;
+}
+.brutal-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 0 #000;
+}
+`;
 
 export function App() {
   const initialCards: CardData[] = [
@@ -190,14 +248,10 @@ export function App() {
       subtitle: "探索未知星域",
       content: (
         <img
+          draggable={false}
           src="https://picsum.photos/seed/galaxy/400/600"
           alt="星际"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            borderRadius: "8px",
-          }}
+          style={CARD_IMG_STYLE}
         />
       ),
     },
@@ -254,8 +308,13 @@ export function App() {
     });
   }, []);
 
+  // 可控的混乱：给卡牌分配轻微旋转
+  const ROTATIONS = [-1.6, 1.4, -0.8];
+
   return (
     <main style={pageStyle}>
+      <style>{brutalCSS}</style>
+
       {/* 左侧收藏区 */}
       <div style={zoneStyle("left")}>
         <div style={zoneIconStyle}>✨</div>
@@ -264,21 +323,24 @@ export function App() {
 
       {/* 右侧销毁区 */}
       <div style={zoneStyle("right")}>
-        <div style={zoneIconStyle}>🗑</div>
+        <div style={zoneIconStyle}>🗑️</div>
         <div style={zoneLabelStyle}>销毁</div>
       </div>
 
-      <h1 style={headingStyle}>Curioverse</h1>
+      <h1 style={headingStyle}>
+        <span style={titleBadgeStyle}>Curioverse</span>
+      </h1>
       <p style={subStyle}>拖拽卡牌到两侧，右划销毁，左划收藏</p>
 
       <div style={cardAreaStyle}>
-        {cards.map((card) => (
+        {cards.map((card, i) => (
           <Card
             key={card.id}
             id={card.id}
             title={card.title}
             subtitle={card.subtitle}
             width="220px"
+            rotate={ROTATIONS[i % ROTATIONS.length]}
             onDestroy={handleDestroy}
             onFavorite={handleFavorite}
           >
@@ -300,10 +362,12 @@ export function App() {
 
       {/* Debug 工具栏 */}
       <div style={debugBarStyle}>
-        <span style={debugTextStyle}>
-          卡片: {cards.length}/3
-        </span>
-        <button style={debugBtnStyle} onClick={handleAdd}>
+        <span style={debugTextStyle}>卡片: {cards.length}/3</span>
+        <button
+          className="brutal-btn"
+          style={debugBtnStyle}
+          onClick={handleAdd}
+        >
           + 添加卡片
         </button>
       </div>
