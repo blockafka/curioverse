@@ -1,15 +1,15 @@
 import type {
-  ChooseExplorationRequest,
   CreateExplorationRequest,
+  ContinueExplorationRequest,
   ExplorationFeedback,
   ExplorationSession
 } from "@curioverse/contracts";
 
 export interface ExplorationOrchestrator {
   create(input: CreateExplorationRequest): Promise<ExplorationSession>;
-  choose(
+  continue(
     sessionId: string,
-    input: ChooseExplorationRequest
+    input: ContinueExplorationRequest
   ): Promise<ExplorationSession>;
   get(sessionId: string): Promise<ExplorationSession>;
   feedback(sessionId: string, input: ExplorationFeedback): Promise<void>;
@@ -20,7 +20,7 @@ export function createUnconfiguredOrchestrator(): ExplorationOrchestrator {
     async create() {
       throw new Error("Exploration orchestrator is not configured");
     },
-    async choose() {
+    async continue() {
       throw new Error("Exploration orchestrator is not configured");
     },
     async get() {

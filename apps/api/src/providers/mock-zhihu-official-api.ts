@@ -109,6 +109,13 @@ function businessError<T>(key: string): OfficialResponse<T> {
   return clone(fixtures.errors.business[key]) as OfficialResponse<T>;
 }
 
+function searchFixtureStartIndex(query: string): number {
+  if (query.includes("从周末逃离城市开始")) return 1;
+  if (query.includes("徒步不一定适合所有人")) return 2;
+  if (query.includes("城市周边半日路线")) return 3;
+  return 0;
+}
+
 export class MockZhihuOfficialApi implements ZhihuOfficialApi {
   public constructor(private readonly options: { mode?: MockMode } = {}) {}
 
@@ -116,14 +123,18 @@ export class MockZhihuOfficialApi implements ZhihuOfficialApi {
     return clone(fixtures.quota);
   }
 
-  async searchZhihu(_query: string, count = 10) {
+  async searchZhihu(query: string, count = 10) {
     if (this.options.mode === "business-error") {
       return businessError<SearchData>("quotaExceeded");
     }
 
     const response = clone(fixtures.searchZhihu);
     if (response.Code === 0) {
-      response.Data.Items = response.Data.Items.slice(0, clamp(count, 1, 10, 10));
+      const startIndex = searchFixtureStartIndex(query);
+      response.Data.Items = response.Data.Items.slice(
+        startIndex,
+        startIndex + clamp(count, 1, 10, 10)
+      );
     }
     return response;
   }

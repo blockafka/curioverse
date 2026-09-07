@@ -13,12 +13,6 @@ export const SourceRefSchema = z.object({
   ])
 });
 
-export const ExplorationChoiceSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  nextQuery: z.string().trim().min(1)
-});
-
 export const ExplorationCompletionSchema = z.object({
   reason: z.enum(["all-types-covered", "max-rounds", "user-ended"]),
   routeTitle: z.string(),
@@ -30,8 +24,7 @@ export const ExplorationNodeSchema = z.object({
   type: z.enum(["story", "counterpoint", "application"]),
   title: z.string(),
   summary: z.string(),
-  sourceRefs: z.array(SourceRefSchema),
-  choices: z.array(ExplorationChoiceSchema)
+  sourceRefs: z.array(SourceRefSchema)
 });
 
 export const ExplorationSessionSchema = z.object({
@@ -46,12 +39,11 @@ export const ExplorationSessionSchema = z.object({
 });
 
 export const CreateExplorationRequestSchema = z.object({
-  question: z.string().trim().min(1).max(240)
+  query: z.string().trim().min(1).max(240)
 });
 
-export const ChooseExplorationRequestSchema = z.object({
-  nodeId: z.string(),
-  choiceId: z.string()
+export const ContinueExplorationRequestSchema = z.object({
+  nodeId: z.string()
 });
 
 export const ExplorationFeedbackSchema = z.object({
@@ -60,14 +52,13 @@ export const ExplorationFeedbackSchema = z.object({
 });
 
 export type SourceRef = z.infer<typeof SourceRefSchema>;
-export type ExplorationChoice = z.infer<typeof ExplorationChoiceSchema>;
 export type ExplorationCompletion = z.infer<typeof ExplorationCompletionSchema>;
 export type ExplorationNode = z.infer<typeof ExplorationNodeSchema>;
 export type ExplorationSession = z.infer<typeof ExplorationSessionSchema>;
 export type CreateExplorationRequest = z.infer<
   typeof CreateExplorationRequestSchema
 >;
-export type ChooseExplorationRequest = z.infer<
-  typeof ChooseExplorationRequestSchema
+export type ContinueExplorationRequest = z.infer<
+  typeof ContinueExplorationRequestSchema
 >;
 export type ExplorationFeedback = z.infer<typeof ExplorationFeedbackSchema>;

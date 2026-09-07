@@ -3,7 +3,7 @@ import type { ZhihuSource } from "./zhihu-provider.js";
 
 export interface AiProvider {
   generateNodes(input: {
-    question: string;
+    query: string;
     source: ZhihuSource;
     selectedPath: string[];
     round: number;

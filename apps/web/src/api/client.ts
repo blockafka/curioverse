@@ -1,6 +1,8 @@
 import {
+  ContinueExplorationRequestSchema,
   CreateExplorationRequestSchema,
   ExplorationSessionSchema,
+  type ContinueExplorationRequest,
   type CreateExplorationRequest,
   type ExplorationSession
 } from "@curioverse/contracts";
@@ -28,6 +30,22 @@ export async function createExploration(
     method: "POST",
     body: JSON.stringify(payload)
   });
+
+  return ExplorationSessionSchema.parse(response);
+}
+
+export async function continueExploration(
+  sessionId: string,
+  input: ContinueExplorationRequest
+): Promise<ExplorationSession> {
+  const payload = ContinueExplorationRequestSchema.parse(input);
+  const response = await request<unknown>(
+    `/v1/explorations/${sessionId}/continue`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }
+  );
 
   return ExplorationSessionSchema.parse(response);
 }

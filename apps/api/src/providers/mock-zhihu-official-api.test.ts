@@ -128,8 +128,13 @@ test("official parameter errors remain business errors", async () => {
 });
 
 test("the product-facing Zhihu provider defaults to one source per exploration step", async () => {
-  const sources = await createMockZhihuProvider().search("为什么年轻人越来越喜欢徒步？");
+  const provider = createMockZhihuProvider();
+  const sources = await provider.search("为什么年轻人越来越喜欢徒步？");
 
   assert.equal(sources.length, 1);
   assert.equal(sources[0]?.id, "answer-001");
+
+  const nextSources = await provider.search("从周末逃离城市开始");
+  assert.equal(nextSources.length, 1);
+  assert.notEqual(nextSources[0]?.id, sources[0]?.id);
 });
